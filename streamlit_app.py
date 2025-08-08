@@ -1,8 +1,6 @@
-# streamlit_app.py — punto de entrada simple para Streamlit Cloud
+import streamlit as st
 from app import ui
 
-def main():
-    ui.run()
-
+# Punto de entrada principal para Streamlit Cloud
 if __name__ == "__main__":
-    main()
+    ui.run()
