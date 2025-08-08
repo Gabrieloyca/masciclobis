@@ -7,7 +7,10 @@ web application defined in :mod:`app.ui`. It simply delegates to the
 
 from __future__ import annotations
 
-from app import ui
+import sys, os
+sys.path.insert(0, os.path.dirname(__file__))
+import ui
+
 
 
 def main() -> None:
