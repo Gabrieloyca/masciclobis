@@ -1,6 +1,5 @@
 import streamlit as st
 from app import ui
 
-# Punto de entrada principal para Streamlit Cloud
-if __name__ == "__main__":
-    ui.run()
+st.set_page_config(page_title="Analyse d'accessibilité", layout="wide")
+ui.main()

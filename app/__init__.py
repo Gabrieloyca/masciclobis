@@ -1,1 +1,1 @@
-from . import analysis, map, ui, utils
+from . import ui, analysis, map, utils
