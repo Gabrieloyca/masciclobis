@@ -5,7 +5,6 @@ import networkx as nx
 
 def prepare_graph(G: nx.MultiDiGraph) -> nx.MultiDiGraph:
     try:
-        Gp = ox.project_graph(G)
-        return Gp
+        return ox.project_graph(G)
     except Exception:
         return G
