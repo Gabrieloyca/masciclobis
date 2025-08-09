@@ -1,36 +1,57 @@
-"""Metric computation for the accessibility analysis app.
-
-This module defines functions to compute various graph metrics. At
-present only simple summary metrics are implemented, but this is
-designed to be easily extensible to include more sophisticated
-measures such as centrality, isochrone areas, or access to
-amenities.
-"""
 
 from __future__ import annotations
-
 from typing import Dict
-
 import networkx as nx
-
-from app.utils import summary_metrics
-
+import geopandas as gpd
+import pandas as pd
+import osmnx as ox
+from shapely.geometry import Polygon
+import h3
 
 def compute_metrics(G: nx.MultiDiGraph) -> Dict[str, float]:
-    """Compute a set of metrics for the given graph.
+    nodes = G.number_of_nodes()
+    edges = G.number_of_edges()
+    try:
+        ge = ox.graph_to_gdfs(G, nodes=False, edges=True, fill_edge_geometry=True)
+        total_km = float(ge["length"].sum() / 1000.0) if "length" in ge.columns else float(0.0)
+    except Exception:
+        total_km = 0.0
+    comps = nx.number_connected_components(G.to_undirected())
+    avg_deg = sum(dict(G.degree()).values())/nodes if nodes else 0.0
+    return {
+        "nodes": nodes,
+        "edges": edges,
+        "total_km": total_km,
+        "components": comps,
+        "avg_degree": round(avg_deg, 3),
+    }
 
-    Currently delegates to :func:`summary_metrics` in the utils module
-    but can be extended to compute additional indicators like betweenness
-    centrality, closeness centrality, network density, etc.
+def add_edge_betweenness(G: nx.MultiDiGraph, edges_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    Gu = G.to_undirected()
+    n = Gu.number_of_nodes()
+    k = min(200, max(20, n//20))
+    bt = nx.betweenness_centrality(Gu, k=k, seed=42, normalized=True)
+    def edge_centrality(row):
+        u = row.get("u")
+        v = row.get("v")
+        if u in bt and v in bt:
+            return (bt[u]+bt[v])/2.0
+        return 0.0
+    if "u" in edges_gdf.columns and "v" in edges_gdf.columns:
+        edges_gdf = edges_gdf.copy()
+        edges_gdf["betweenness"] = edges_gdf.apply(edge_centrality, axis=1)
+    return edges_gdf
 
-    Parameters
-    ----------
-    G : networkx.MultiDiGraph
-        The graph to analyze.
-
-    Returns
-    -------
-    dict
-        Mapping of metric names (in French) to their values.
-    """
-    return summary_metrics(G)
+def aggregate_h3(edges_gdf: gpd.GeoDataFrame, res: int = 7) -> gpd.GeoDataFrame:
+    g = edges_gdf.to_crs(4326)
+    cent = g.geometry.centroid
+    hexes = [h3.geo_to_h3(lat, lon, res) for lat, lon in zip(cent.y, cent.x)]
+    df = pd.DataFrame({"h3": hexes, "length_m": g.get("length", 0)})
+    agg = df.groupby("h3", as_index=False)["length_m"].sum()
+    polys = []
+    for hid in agg["h3"]:
+        b = h3.h3_to_geo_boundary(hid, geo_json=True)
+        polys.append(Polygon(b))
+    out = gpd.GeoDataFrame(agg, geometry=polys, crs="EPSG:4326")
+    out["length_km"] = out["length_m"] / 1000.0
+    return out
