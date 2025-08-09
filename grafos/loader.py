@@ -1,10 +1,15 @@
-
 from __future__ import annotations
 from typing import Literal
 import osmnx as ox
 import networkx as nx
 import math
 from shapely.geometry import LineString
+
+# Ajustes para Overpass y tiempos de espera razonables en cloud
+ox.settings.overpass_rate_limit = True
+ox.settings.timeout = 180
+ox.settings.use_cache = True
+ox.settings.log_console = False
 
 def load_city_graph(city: str, mode: Literal["walk","bike"]="walk", distance: int = 2000) -> nx.MultiDiGraph:
     lat, lon = ox.geocode(city)

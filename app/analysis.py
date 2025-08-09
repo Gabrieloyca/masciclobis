@@ -1,16 +1,17 @@
-
 from __future__ import annotations
 import traceback
 import pandas as pd
 import geopandas as gpd
-import osmnx as ox
-from grafos import loader, prepare, metrics
 import streamlit as st
 
 @st.cache_data(show_spinner=False)
 def _compute(city: str, mode: str, radius_km: float,
-             do_centrality: bool, do_closeness: bool, do_degree: bool,
-             do_h3: bool, h3_res: int, color_by: str):
+            do_centrality: bool, do_closeness: bool, do_degree: bool,
+            do_h3: bool, h3_res: int, color_by: str):
+    # Importes lourds *ici* pour accélérer le boot et réduire le temps de "oven"
+    import osmnx as ox
+    from grafos import loader, prepare, metrics
+
     G = loader.get_graph(city, mode=mode, distance=int(radius_km*1000))
     G = prepare.prepare_graph(G)
     nodes, edges = ox.graph_to_gdfs(G, nodes=True, edges=True, fill_edge_geometry=True)

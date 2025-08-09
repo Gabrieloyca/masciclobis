@@ -1,4 +1,3 @@
-
 import streamlit as st
 from . import analysis, map as map_mod
 from streamlit_folium import st_folium
@@ -74,14 +73,14 @@ def run():
     d1, d2, d3 = st.columns(3)
     with d1:
         st.download_button("GeoJSON — réseau", result["edges_geojson"].encode("utf-8"),
-                           file_name="reseau.geojson", mime="application/geo+json", use_container_width=True)
+                        file_name="reseau.geojson", mime="application/geo+json", use_container_width=True)
     with d2:
         st.download_button("CSV — indicateurs", result["metrics_csv"].encode("utf-8"),
-                           file_name="indicateurs.csv", mime="text/csv", use_container_width=True)
+                        file_name="indicateurs.csv", mime="text/csv", use_container_width=True)
     with d3:
         if result.get("h3_geojson"):
             st.download_button("GeoJSON — H3", result["h3_geojson"].encode("utf-8"),
-                               file_name="h3.geojson", mime="application/geo+json", use_container_width=True)
+                            file_name="h3.geojson", mime="application/geo+json", use_container_width=True)
 
     if st.button("↩ Rejouer", type="secondary"):
         st.session_state.result = None

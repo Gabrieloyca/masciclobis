@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 import folium
 from folium import Choropleth
