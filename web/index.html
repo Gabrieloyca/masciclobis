@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Accessibilidad urbana — WebMap</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-o9N1j7kPyk+0t3vG8l3A9Y+4W5p0p3pbbf1lJv+4bQA=" crossorigin="" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <aside class="sidebar">
+        <header>
+          <h1>Accessibilidad urbana</h1>
+          <p class="subtitle">Explora indicadores de accesibilidad utilizando datos de OpenStreetMap.</p>
+        </header>
+        <form id="analysis-form">
+          <label>
+            Ciudad o dirección
+            <input type="text" id="city" name="city" value="Monaco, Monaco" required />
+          </label>
+          <label>
+            Perfil OSM
+            <select id="mode" name="mode">
+              <option value="walk" selected>Peatón</option>
+              <option value="bike">Bicicleta</option>
+              <option value="drive">Vehículo</option>
+            </select>
+          </label>
+          <label>
+            Radio (km)
+            <input type="number" id="radius_km" name="radius_km" min="0.2" max="5" step="0.1" value="1" />
+          </label>
+          <fieldset>
+            <legend>Indicadores de centralidad</legend>
+            <label class="checkbox"><input type="checkbox" id="do_centrality" name="do_centrality" checked /> Betweenness</label>
+            <label class="checkbox"><input type="checkbox" id="do_closeness" name="do_closeness" /> Closeness</label>
+            <label class="checkbox"><input type="checkbox" id="do_degree" name="do_degree" /> Grado</label>
+            <label class="checkbox"><input type="checkbox" id="do_straightness" name="do_straightness" /> Straightness</label>
+            <label class="checkbox"><input type="checkbox" id="do_eigenvector" name="do_eigenvector" /> Eigenvector</label>
+          </fieldset>
+          <fieldset>
+            <legend>Agregación H3</legend>
+            <label class="checkbox"><input type="checkbox" id="do_h3" name="do_h3" checked /> Activar capa H3</label>
+            <label>
+              Resolución
+              <input type="number" id="h3_res" name="h3_res" min="1" max="12" step="1" value="7" />
+            </label>
+          </fieldset>
+          <label>
+            Colorizar por
+            <select id="color_by" name="color_by">
+              <option value="length" selected>Longitud</option>
+              <option value="betweenness">Betweenness</option>
+              <option value="closeness">Closeness</option>
+              <option value="degree">Grado</option>
+              <option value="straightness">Straightness</option>
+              <option value="eigenvector">Eigenvector</option>
+            </select>
+          </label>
+          <details class="advanced">
+            <summary>Opciones avanzadas</summary>
+            <label class="checkbox">
+              <input type="checkbox" id="allow_synthetic" name="allow_synthetic" />
+              Permitir red sintética si Overpass no responde
+            </label>
+          </details>
+          <button type="submit" id="submit-btn">Lanzar análisis</button>
+          <div id="form-status" aria-live="polite"></div>
+        </form>
+        <section id="downloads" hidden>
+          <h2>Descargas</h2>
+          <a id="download-edges" download="red.geojson">GeoJSON — red</a>
+          <a id="download-metrics" download="indicadores.csv">CSV — indicadores</a>
+          <a id="download-h3" download="h3.geojson">GeoJSON — H3</a>
+        </section>
+      </aside>
+      <main class="content">
+        <div id="map"></div>
+        <section class="panel" id="metrics-panel" hidden>
+          <h2>Indicadores</h2>
+          <div id="metrics-summary" class="metrics"></div>
+          <details id="metrics-table-wrapper">
+            <summary>Ver tabla de indicadores</summary>
+            <table id="metrics-table">
+              <thead>
+                <tr><th>Indicador</th><th>Valor</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </details>
+        </section>
+      </main>
+    </div>
+    <template id="legend-template">
+      <div class="map-legend"></div>
+    </template>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-oEnYGl5fQ5p3GEXUXRdLLfiXyM54f9N6LNf3lkaAkYg=" crossorigin=""></script>
+    <script src="/static/app.js" type="module"></script>
+  </body>
+</html>
