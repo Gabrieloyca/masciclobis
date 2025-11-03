@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -23,8 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+router = APIRouter()
 
 
 class AnalysisRequest(BaseModel):
@@ -66,19 +65,12 @@ def _to_native(obj: Any) -> Any:
     return obj
 
 
-@app.get("/")
-async def serve_index():
-    if STATIC_DIR.exists():
-        return FileResponse(STATIC_DIR / "index.html")
-    raise HTTPException(status_code=404, detail="Interface web non disponible")
-
-
-@app.get("/api/health")
+@router.get("/health")
 async def healthcheck():
     return {"status": "ok"}
 
 
-@app.post("/api/analyze")
+@router.post("/analyze")
 async def analyze(req: AnalysisRequest):
     result = analysis.run(
         city=req.city,
@@ -122,6 +114,19 @@ async def analyze(req: AnalysisRequest):
         response["h3"] = h3_payload
 
     return response
+
+
+app.include_router(router, prefix="/api")
+
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.get("/")
+async def serve_index() -> FileResponse:
+    if STATIC_DIR.exists():
+        return FileResponse(STATIC_DIR / "index.html")
+    raise HTTPException(status_code=404, detail="Interface web non disponible")
 
 
 def create_app() -> FastAPI:
